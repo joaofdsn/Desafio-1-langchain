@@ -1,3 +1,7 @@
+from ingest import store
+from dotenv import load_dotenv
+from langchain.prompts import PromptTemplate
+
 PROMPT_TEMPLATE = """
 CONTEXTO:
 {contexto}
@@ -25,5 +29,16 @@ PERGUNTA DO USUÁRIO:
 RESPONDA A "PERGUNTA DO USUÁRIO"
 """
 
+load_dotenv()
+
 def search_prompt(question=None):
-    pass
+  docs = store.similarity_search_with_score(question, k=10)
+
+  if not docs:
+      return "Não foram encontrados documentos relevantes."
+
+  contexto = "\n\n".join([doc.page_content.strip() for doc, _ in docs])
+
+  prompt = PromptTemplate.from_template(PROMPT_TEMPLATE).format(contexto=contexto, pergunta=question)
+
+  return prompt
